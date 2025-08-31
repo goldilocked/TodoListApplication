@@ -1,7 +1,14 @@
 # Awesome Project Build with TypeORM
+// this section autocreated
 
 Steps to run this project:
 
 1. Run `npm i` command
 2. Setup database settings inside `data-source.ts` file
 3. Run `npm start` command
+
+// this section created by me
+
+# Database setup
+1. docker pull postgres
+2. docker run --name todoListPostgres -e POSTGRES_PASSWORD=<yourpassword> -p 5432:5432 -d postgres
