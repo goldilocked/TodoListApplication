@@ -1,7 +1,8 @@
-import express, { Request, Response } from 'express'
+import * as express from 'express'
+import { Request, Response } from 'express'
 import { AppDataSource } from "./data-source"
 import { ToDoItem } from "./entity/ToDoItem"
-import cors from 'cors'
+import * as cors from 'cors'
 
 interface CreateTodoRequest {
     name: string;
@@ -19,7 +20,7 @@ AppDataSource.initialize().then(async () => {
     // Define routes
     app.get("/todos", async (_req: Request, res: Response) => {
         try {
-            const todos = await AppDataSource.manager.find(ToDoItem)
+            const todos = await AppDataSource.manager.find(ToDoItem);
             res.json(todos)
         } catch (error) {
             res.status(500).json({ error: "Failed to fetch todos" })
