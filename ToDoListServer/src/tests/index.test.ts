@@ -10,6 +10,7 @@ jest.mock('../data-source', () => ({
       find: jest.fn().mockResolvedValue([]),
       create: jest.fn((EntityClass, entity) => ({ ...entity })),
       save: jest.fn(entity => Promise.resolve({ id: '1', ...entity })),
+      delete: jest.fn().mockResolvedValue({ affected: 1 })
     }
   }
 }));
@@ -119,6 +120,36 @@ describe('Todo API with mocked database', () => {
       
       expect(response.status).toBe(500);
       expect(response.body).toEqual({ error: 'Failed to create todo' });
+    });
+  });
+
+  describe('DELETE /todos/:id', () => {
+    it('should delete an existing todo', async () => {
+      const response = await request(app).delete('/todos/1');
+      
+      expect(response.status).toBe(204);
+    });
+
+    it('should return 404 when todo does not exist', async () => {
+      // Mock delete to return no affected rows
+      jest.spyOn(AppDataSource.manager, 'delete')
+        .mockResolvedValueOnce({ raw: {}, affected: 0 });
+
+      const response = await request(app).delete('/todos/999');
+      
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({ error: 'Todo not found' });
+    });
+
+    it('should handle database errors', async () => {
+      // Mock delete to throw an error
+      jest.spyOn(AppDataSource.manager, 'delete')
+        .mockRejectedValueOnce(new Error('Database error'));
+
+      const response = await request(app).delete('/todos/1');
+      
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({ error: 'Failed to delete todo' });
     });
   });
 });

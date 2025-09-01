@@ -45,6 +45,21 @@ app.post("/todos", async (req: Request, res: Response) => {
     }
 });
 
+app.delete("/todos/:id", async (req: Request, res: Response) => {
+    try {
+        const id = req.params.id;
+        const result = await AppDataSource.manager.delete(ToDoItem, id);
+        
+        if (result.affected === 0) {
+            return res.status(404).json({ error: "Todo not found" });
+        }
+        
+        res.status(204).send();
+    } catch (error) {
+        res.status(500).json({ error: "Failed to delete todo" });
+    }
+});
+
 // Only start the server if this file is run directly
 if (require.main === module) {
     // Initialize database connection
