@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '22'
+        cache: 'npm'
+        cache-dependency-path: |
+          ToDoList/package-lock.json
+          ToDoListServer/package-lock.json
+
+    # Frontend tests
+    - name: Install frontend dependencies
+      working-directory: ./ToDoList
+      run: npm ci
+
+    - name: Run frontend tests
+      working-directory: ./ToDoList
+      run: npm run test
+
+    # Backend tests
+    - name: Install backend dependencies
+      working-directory: ./ToDoListServer
+      run: npm ci
+
+    - name: Run backend tests
+      working-directory: ./ToDoListServer
+      run: npm test
