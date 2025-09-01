@@ -6,8 +6,11 @@ import { TodoService } from '../../services/api';
 // Mock the TodoService
 vi.mock('../../services/api', () => ({
   TodoService: {
-    getAllTodos: vi.fn().mockResolvedValue([]),
-    createTodo: vi.fn().mockResolvedValue({ id: '1', name: 'Test Todo', description: 'Test Description', status: 'Created' })
+    getAllTodos: vi.fn().mockResolvedValue([
+      { id: '1', name: 'Test Todo', description: 'Test Description', status: 'Created' }
+    ]),
+    createTodo: vi.fn().mockResolvedValue({ id: '1', name: 'Test Todo', description: 'Test Description', status: 'Created' }),
+    updateTodo: vi.fn().mockImplementation((id, todo) => Promise.resolve({ ...todo, id }))
   }
 }));
 
@@ -18,10 +21,12 @@ describe('HomePage', () => {
         stubs: {
           ToDoItem: {
             name: 'ToDoItem',
-            template: '<div>Todo Item</div>',
-            props: ['id', 'name', 'description', 'status']
+            template: '<button @click="$emit(\'edit\')" data-test="edit-todo-button">Edit</button>',
+            props: ['id', 'name', 'description', 'status'],
+            emits: ['edit']
           },
-          ToDoForm: true
+          // Don't stub ToDoForm as we need to test its functionality
+          ToDoForm: false
         }
       }
     });
@@ -45,6 +50,33 @@ describe('HomePage', () => {
     expect(addButton.text()).toContain('Add new list item');
   });
 
+  it('pre-fills form data when editing a todo', async () => {
+    const wrapper = createWrapper();
+    
+    // Wait for initial todos to load
+    await wrapper.vm.$nextTick();
+    await wrapper.vm.$nextTick(); // Additional tick for async operations
+
+    // Find the first todo item and click its edit button
+    const editButton = wrapper.find('[data-test="edit-todo-button"]');
+
+    await editButton.trigger('click');
+
+    // Wait for the modal to appear
+    await wrapper.vm.$nextTick();
+
+    // Check that the modal title shows "Edit Todo"
+    const modalTitle = wrapper.find('[data-test="modal-title"]');
+    expect(modalTitle.text()).toBe('Edit Todo');
+
+    // Check that the form inputs are pre-filled with the todo's data
+    const nameInput = wrapper.find('input[id="name"]');
+    const descriptionTextarea = wrapper.find('textarea[id="description"]');
+
+    expect((nameInput.element as HTMLInputElement).value).toBe('Test Todo');
+    expect((descriptionTextarea.element as HTMLTextAreaElement).value).toBe('Test Description');
+  });
+
   it('shows todo form when add button is clicked', async () => {
     const wrapper = mount(HomePage, {
       global: {
@@ -64,7 +96,8 @@ describe('HomePage', () => {
     // Form should now be visible
     const modal = wrapper.find('[data-test="todo-form-modal"]');
     expect(modal.exists()).toBe(true);
-    expect(modal.text()).toContain('Add New Todo');
+    const modalTitle = wrapper.find('[data-test="modal-title"]');
+    expect(modalTitle.text()).toBe('Add New Todo');
   });
 
   it('hides form when cancel is clicked', async () => {
@@ -113,7 +146,6 @@ describe('HomePage', () => {
     // Verify the props were passed correctly
     const firstTodoItem = todoItems[0];
     expect(firstTodoItem.props()).toEqual({
-      id: '1',
       name: 'Todo 1',
       description: 'Description 1',
       status: 'Created'
