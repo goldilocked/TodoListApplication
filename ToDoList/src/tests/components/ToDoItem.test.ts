@@ -6,7 +6,6 @@ describe('ToDoItem', () => {
   it('shows unchecked checkbox for incomplete items', () => {
     const wrapper = mount(ToDoItem, {
       props: {
-        id: '1',
         name: 'Test Todo',
         description: 'Test Description',
         status: 'Created'
@@ -24,7 +23,6 @@ describe('ToDoItem', () => {
   it('shows checked checkbox for completed items', () => {
     const wrapper = mount(ToDoItem, {
       props: {
-        id: '2',
         name: 'Completed Todo',
         description: 'This is done',
         status: 'Completed'
@@ -35,11 +33,11 @@ describe('ToDoItem', () => {
     expect((checkbox.element as HTMLInputElement).checked).toBe(true);
   });
 
+  
   describe('delete functionality', () => {
     it('shows delete button', () => {
       const wrapper = mount(ToDoItem, {
         props: {
-          id: '1',
           name: 'Test Todo',
           description: 'Test Description',
           status: 'Created'
@@ -53,7 +51,6 @@ describe('ToDoItem', () => {
     it('shows confirmation dialog when delete button is clicked', async () => {
       const wrapper = mount(ToDoItem, {
         props: {
-          id: '1',
           name: 'Test Todo',
           description: 'Test Description',
           status: 'Created'
@@ -119,6 +116,62 @@ describe('ToDoItem', () => {
       // Delete event should have been emitted
       expect(wrapper.emitted('delete')).toBeTruthy();
       expect(wrapper.emitted('delete')?.length).toBe(1);
+    });
+  });
+
+  describe('edit functionality', () => {
+    it('shows edit button with correct attributes', () => {
+      const wrapper = mount(ToDoItem, {
+        props: {
+          name: 'Test Todo',
+          description: 'Test Description',
+          status: 'Created'
+        }
+      });
+
+      const editButton = wrapper.find('[data-test="edit-todo-button"]');
+      expect(editButton.exists()).toBe(true);
+      expect(editButton.attributes('title')).toBe('Edit todo');
+    });
+
+    it('emits edit event when edit button is clicked', async () => {
+      const wrapper = mount(ToDoItem, {
+        props: {
+          name: 'Test Todo',
+          description: 'Test Description',
+          status: 'Created'
+        }
+      });
+
+      // Click edit button
+      const editButton = wrapper.find('[data-test="edit-todo-button"]');
+      await editButton.trigger('click');
+
+      // Edit event should have been emitted
+      expect(wrapper.emitted('edit')).toBeTruthy();
+      expect(wrapper.emitted('edit')?.length).toBe(1);
+    });
+
+    it('Todo content stays the same after edit button is clicked', async () => {
+      const wrapper = mount(ToDoItem, {
+        props: {
+          name: 'Test Todo',
+          description: 'Test Description',
+          status: 'Created'
+        }
+      });
+
+      // Get initial component content
+      const initialContent = wrapper.text();
+
+      // Click edit button
+      const editButton = wrapper.find('[data-test="edit-todo-button"]');
+      await editButton.trigger('click');
+
+      // Component should still show the same content
+      expect(wrapper.text()).toBe(initialContent);
+      expect(wrapper.find('[data-test="todo-name"]').text()).toBe('Test Todo');
+      expect(wrapper.find('[data-test="todo-description"]').text()).toBe('Test Description');
     });
   });
 });

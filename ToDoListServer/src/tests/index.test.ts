@@ -8,9 +8,11 @@ jest.mock('../data-source', () => ({
     destroy: jest.fn().mockResolvedValue({}),
     manager: {
       find: jest.fn().mockResolvedValue([]),
+      findOne: jest.fn().mockResolvedValue(null),
       create: jest.fn((EntityClass, entity) => ({ ...entity })),
       save: jest.fn(entity => Promise.resolve({ id: '1', ...entity })),
-      delete: jest.fn().mockResolvedValue({ affected: 1 })
+      delete: jest.fn().mockResolvedValue({ affected: 1 }),
+      merge: jest.fn((EntityClass, target, source) => ({ ...target, ...source }))
     }
   }
 }));
@@ -59,6 +61,93 @@ describe('Todo API with mocked database', () => {
       
       expect(response.status).toBe(500);
       expect(response.body).toEqual({ error: 'Failed to fetch todos' });
+    });
+  });
+
+  describe('PUT /todos/:id', () => {
+    beforeEach(() => {
+      // Reset mocks before each test
+      jest.spyOn(AppDataSource.manager, 'findOne').mockReset();
+      jest.spyOn(AppDataSource.manager, 'merge').mockReset();
+      jest.spyOn(AppDataSource.manager, 'save').mockReset();
+    });
+
+    it('should update an existing todo', async () => {
+      const existingTodo = {
+        id: '1',
+        name: 'Original Todo',
+        description: 'Original Description',
+        status: 'Created'
+      };
+
+      const updatedTodo = {
+        name: 'Updated Todo',
+        description: 'Updated Description',
+        status: 'IN_PROGRESS'
+      };
+
+      // Mock findOne to return the existing todo
+      jest.spyOn(AppDataSource.manager, 'findOne').mockResolvedValueOnce(existingTodo);
+      
+      // Mock save to return the updated todo
+      jest.spyOn(AppDataSource.manager, 'save').mockResolvedValueOnce({
+        ...existingTodo,
+        ...updatedTodo
+      });
+
+      const response = await request(app)
+        .put('/todos/1')
+        .send(updatedTodo);
+      
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        id: '1',
+        ...updatedTodo
+      });
+    });
+
+    it('should return 404 when todo does not exist', async () => {
+      // Mock findOne to return null (todo not found)
+      jest.spyOn(AppDataSource.manager, 'findOne').mockResolvedValueOnce(null);
+
+      const response = await request(app)
+        .put('/todos/999')
+        .send({
+          name: 'Updated Todo',
+          description: 'Updated Description',
+          status: 'IN_PROGRESS'
+        });
+      
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({ error: 'Todo not found' });
+    });
+
+    it('should return 400 for invalid input', async () => {
+      const response = await request(app)
+        .put('/todos/1')
+        .send({
+          // Missing required fields
+          description: 'Updated Description'
+        });
+      
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({ error: 'Missing required fields' });
+    });
+
+    it('should handle database errors', async () => {
+      // Mock findOne to throw an error
+      jest.spyOn(AppDataSource.manager, 'findOne').mockRejectedValueOnce(new Error('Database error'));
+
+      const response = await request(app)
+        .put('/todos/1')
+        .send({
+          name: 'Updated Todo',
+          description: 'Updated Description',
+          status: 'IN_PROGRESS'
+        });
+      
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({ error: 'Failed to update todo' });
     });
   });
 

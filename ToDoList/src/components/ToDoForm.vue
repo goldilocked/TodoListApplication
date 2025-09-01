@@ -33,34 +33,45 @@
         type="submit"
         class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
       >
-        Create Todo
+        Submit
       </button>
     </div>
   </form>
 </template>
 
 <script setup lang="ts">
-import { ref, defineEmits } from 'vue'
+import { ref, defineEmits, defineProps } from 'vue'
 import { TodoService } from '../services/api'
+import type { TodoItem } from '../types/todo'
+
+const props = defineProps<{
+  todo?: TodoItem
+}>()
 
 const emit = defineEmits<{
   (event: 'submit'): void
   (event: 'cancel'): void
 }>()
 
-// always default new created todos to "created"
 const form = ref({
-  name: '',
-  description: '',
-  status: 'Created'
+  name: props.todo?.name || '',
+  description: props.todo?.description || '',
+  status: props.todo?.status || 'Created'
 })
 
 const handleSubmit = async () => {
   try {
-    await TodoService.createTodo(form.value)
-    emit('submit')
+    if (props.todo?.id) {
+      // Update existing todo
+      await TodoService.updateTodo(props.todo.id, form.value);
+    } else {
+      // Create new todo
+      await TodoService.createTodo(form.value);
+    }
+    emit('submit');
   } catch (error) {
-    console.error('Failed to create todo:', error)
+    console.error('Error saving todo:', error);
   }
 }
+
 </script>

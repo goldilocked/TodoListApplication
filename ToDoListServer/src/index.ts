@@ -45,6 +45,28 @@ app.post("/todos", async (req: Request, res: Response) => {
     }
 });
 
+app.put("/todos/:id", async (req: Request, res: Response) => {
+    try {
+        const id = req.params.id;
+        
+        if (!isValidTodoRequest(req.body)) {
+            return res.status(400).json({ error: "Missing required fields" });
+        }
+
+        const todo = await AppDataSource.manager.findOne(ToDoItem, { where: { id } });
+        if (!todo) {
+            return res.status(404).json({ error: "Todo not found" });
+        }
+
+        // Update the todo with new values
+        AppDataSource.manager.merge(ToDoItem, todo, req.body);
+        const results = await AppDataSource.manager.save(todo);
+        res.json(results);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to update todo" });
+    }
+});
+
 app.delete("/todos/:id", async (req: Request, res: Response) => {
     try {
         const id = req.params.id;

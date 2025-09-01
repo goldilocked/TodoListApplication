@@ -1,21 +1,31 @@
-// this will be a single to-do item in the list on the home page
+// this is a single to-do item box on the list on the home page
 
 <template>
   <div class="flex p-2 space-x-4 border rounded">
     <input type="checkbox" v-model="checked" />
 
     <div class="flex-grow">
-      <div class="font-semibold">{{ name }}</div>
-      <div class="text-gray-500 text-sm">{{ description }}</div>
+      <div class="font-semibold" data-test="todo-name">{{ name }}</div>
+      <div class="text-gray-500 text-sm" data-test="todo-description">{{ description }}</div>
     </div>
     
-    <button
-      @click="handleDelete"
-      class="text-red-500 hover:text-red-700 font-bold px-2 rounded"
-      title="Delete todo"
-    >
-      ×
-    </button>
+    <div class="flex space-x-2">
+      <button
+        @click="$emit('edit')"
+        class="text-blue-500 hover:text-blue-700 p-1 rounded inline-flex items-center"
+        title="Edit todo"
+        data-test="edit-todo-button"
+      >
+        <PencilSquareIcon class="h-5 w-5" />
+      </button>
+      <button
+        @click="handleDelete"
+        class="text-red-500 hover:text-red-700 p-1 rounded inline-flex items-center"
+        title="Delete todo"
+      >
+        <XMarkIcon class="h-5 w-5" />
+      </button>
+    </div>
   </div>
 
   <!-- Confirmation Modal -->
@@ -44,14 +54,15 @@
 
 <script setup lang="ts">
 import { ref, defineProps, defineEmits } from 'vue'
-import { ToDoStatus } from '../models/status.enum';
+import { ToDoStatus } from '../models/status.enum'
+import { PencilSquareIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 
 const emit = defineEmits<{
   (event: 'delete'): void
+  (event: 'edit'): void
 }>()
 
 const props = defineProps<{
-  id: string
   name: string
   description: string
   status: string

@@ -11,14 +11,15 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@heroicons/vue": "^2.2.0",
     "@tailwindcss/vite": "^4.1.12",
     "axios": "^1.11.0",
     "vue": "^3.5.18"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.1",
-    "@vitest/utils": "^3.2.4",
     "@vitest/runner": "^3.2.4",
+    "@vitest/utils": "^3.2.4",
     "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.7.0",
     "happy-dom": "^18.0.1",
