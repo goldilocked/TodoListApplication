@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const getApiUrl = () => {
     // In test environment, use a mock URL
-    if (process.env.VITEST) {
+    if (import.meta.env.VITEST) {
         return 'http://test-api-url';
     }
     
