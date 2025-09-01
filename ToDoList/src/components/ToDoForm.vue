@@ -5,6 +5,7 @@
       <input
         type="text"
         id="name"
+        data-test="todo-name-input"
         v-model="form.name"
         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
         required
@@ -15,6 +16,7 @@
       <label for="description">Description</label>
       <textarea
         id="description"
+        data-test="todo-description-input"
         v-model="form.description"
         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
         required

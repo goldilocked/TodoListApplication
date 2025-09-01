@@ -70,8 +70,8 @@ describe('HomePage', () => {
     expect(modalTitle.text()).toBe('Edit Todo');
 
     // Check that the form inputs are pre-filled with the todo's data
-    const nameInput = wrapper.find('input[id="name"]');
-    const descriptionTextarea = wrapper.find('textarea[id="description"]');
+    const nameInput = wrapper.find('[data-test="todo-name-input"]');
+    const descriptionTextarea = wrapper.find('[data-test="todo-description-input"]');
 
     expect((nameInput.element as HTMLInputElement).value).toBe('Test Todo');
     expect((descriptionTextarea.element as HTMLTextAreaElement).value).toBe('Test Description');
@@ -146,6 +146,7 @@ describe('HomePage', () => {
     // Verify the props were passed correctly
     const firstTodoItem = todoItems[0];
     expect(firstTodoItem.props()).toEqual({
+      id: '1',
       name: 'Todo 1',
       description: 'Description 1',
       status: 'Created'

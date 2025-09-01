@@ -2,7 +2,11 @@
 
 <template>
   <div class="flex p-2 space-x-4 border rounded">
-    <input type="checkbox" v-model="checked" />
+    <input 
+      type="checkbox" 
+      v-model="checked"
+      data-test="todo-status-checkbox" 
+    />
 
     <div class="flex-grow">
       <div class="font-semibold" data-test="todo-name">{{ name }}</div>
@@ -29,7 +33,11 @@
   </div>
 
   <!-- Confirmation Modal -->
-  <div v-if="showConfirmation" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div 
+    v-if="showConfirmation" 
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    data-test="delete-confirmation-dialog"
+  >
     <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full mx-4">
       <h3 class="text-lg font-semibold mb-4">Delete Todo</h3>
       <p class="text-gray-600 mb-6">Are you sure you want to delete "{{ name }}"?</p>
@@ -53,16 +61,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineProps, defineEmits } from 'vue'
+import { ref, defineProps, defineEmits, watch } from 'vue'
 import { ToDoStatus } from '../models/status.enum'
 import { PencilSquareIcon, XMarkIcon } from '@heroicons/vue/24/outline'
+import { TodoService } from '../services/api'
 
 const emit = defineEmits<{
   (event: 'delete'): void
   (event: 'edit'): void
+  (event: 'statusChange'): void
 }>()
 
 const props = defineProps<{
+  id: string,
   name: string
   description: string
   status: string
@@ -84,4 +95,23 @@ const cancelDelete = () => {
 }
 
 const checked = ref(props.status === ToDoStatus.Completed);
+
+const handleStatusChange = async () => {
+  try {
+    const newStatus = checked.value ? ToDoStatus.Completed : ToDoStatus.Created;
+    await TodoService.updateTodo(props.id, {
+      name: props.name,
+      description: props.description,
+      status: newStatus
+    });
+    emit('statusChange');
+  } catch (error) {
+    console.error('Error updating todo status:', error);
+    // Revert checkbox if update fails
+    checked.value = !checked.value;
+  }
+};
+
+// Watch for checkbox changes
+watch(checked, handleStatusChange);
 </script>

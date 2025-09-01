@@ -44,6 +44,7 @@
       v-else
       v-for="todo in todos"
       :key="todo.id"
+      :id="todo.id"
       :name="todo.name"
       :description="todo.description"
       :status="todo.status"

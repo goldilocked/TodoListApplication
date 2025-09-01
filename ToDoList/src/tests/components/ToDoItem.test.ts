@@ -1,83 +1,100 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import ToDoItem from '../../components/ToDoItem.vue';
+import { TodoService } from '../../services/api';
+
+// Mock the TodoService
+vi.mock('../../services/api', () => ({
+  TodoService: {
+    updateTodo: vi.fn().mockResolvedValue({}),
+  }
+}));
 
 describe('ToDoItem', () => {
-  it('shows unchecked checkbox for incomplete items', () => {
-    const wrapper = mount(ToDoItem, {
+  const createWrapper = (props = {}) => {
+    return mount(ToDoItem, {
       props: {
+        id: '1',
         name: 'Test Todo',
         description: 'Test Description',
-        status: 'Created'
+        status: 'Created',
+        ...props
       }
     });
+  };
+
+  describe('checkbox functionality', () => {
+    it('shows unchecked checkbox for incomplete items', () => {
+      const wrapper = createWrapper();
 
     expect(wrapper.text()).toContain('Test Todo');
     expect(wrapper.text()).toContain('Test Description');
     
     // Check that checkbox is unchecked for non-completed items
-    const checkbox = wrapper.find('input[type="checkbox"]');
+    const checkbox = wrapper.find('[data-test="todo-status-checkbox"]');
     expect((checkbox.element as HTMLInputElement).checked).toBe(false);
-  });
+    });
 
-  it('shows checked checkbox for completed items', () => {
-    const wrapper = mount(ToDoItem, {
-      props: {
+    it('shows checked checkbox for completed items', () => {
+      const wrapper = createWrapper({
         name: 'Completed Todo',
         description: 'This is done',
         status: 'Completed'
-      }
+      });
+
+      const checkbox = wrapper.find('[data-test="todo-status-checkbox"]');
+      expect((checkbox.element as HTMLInputElement).checked).toBe(true);
     });
 
-    const checkbox = wrapper.find('input[type="checkbox"]');
-    expect((checkbox.element as HTMLInputElement).checked).toBe(true);
+    it('updates todo status when checkbox is clicked', async () => {
+      const wrapper = createWrapper();
+      
+      // Get the checkbox
+      const checkbox = wrapper.find('[data-test="todo-status-checkbox"]');
+      expect((checkbox.element as HTMLInputElement).checked).toBe(false);
+
+      // Click the checkbox
+      await checkbox.setValue(true);
+
+      // Verify API was called with correct params
+      expect(TodoService.updateTodo).toHaveBeenCalledWith('1', {
+        name: 'Test Todo',
+        description: 'Test Description',
+        status: 'Completed'
+      });
+
+      // Verify statusChange event was emitted
+      expect(wrapper.emitted('statusChange')).toBeTruthy();
+      expect(wrapper.emitted('statusChange')?.length).toBe(1);
+    });
   });
 
   
   describe('delete functionality', () => {
     it('shows delete button', () => {
-      const wrapper = mount(ToDoItem, {
-        props: {
-          name: 'Test Todo',
-          description: 'Test Description',
-          status: 'Created'
-        }
-      });
+      const wrapper = createWrapper();
 
       const deleteButton = wrapper.find('button[title="Delete todo"]');
       expect(deleteButton.exists()).toBe(true);
     });
 
     it('shows confirmation dialog when delete button is clicked', async () => {
-      const wrapper = mount(ToDoItem, {
-        props: {
-          name: 'Test Todo',
-          description: 'Test Description',
-          status: 'Created'
-        }
-      });
+      const wrapper = createWrapper();
 
       // Initially, dialog should not be visible
-      expect(wrapper.find('.bg-black.bg-opacity-50').exists()).toBe(false);
+      expect(wrapper.find('[data-test="delete-confirmation-dialog"]').exists()).toBe(false);
 
       // Click delete button
       await wrapper.find('button[title="Delete todo"]').trigger('click');
 
       // Dialog should now be visible
-      const dialog = wrapper.find('.bg-black.bg-opacity-50');
+      const dialog = wrapper.find('[data-test="delete-confirmation-dialog"]');
       expect(dialog.exists()).toBe(true);
       expect(dialog.text()).toContain('Are you sure you want to delete "Test Todo"?');
     });
 
     it('closes dialog without emitting when cancel is clicked', async () => {
-      const wrapper = mount(ToDoItem, {
-        props: {
-          id: '1',
-          name: 'Test Todo',
-          description: 'Test Description',
-          status: 'Created'
-        }
-      });
+      const wrapper = createWrapper();
 
       // Open dialog
       await wrapper.find('button[title="Delete todo"]').trigger('click');
@@ -87,21 +104,14 @@ describe('ToDoItem', () => {
       await cancelButton?.trigger('click');
 
       // Dialog should be closed
-      expect(wrapper.find('.bg-black.bg-opacity-50').exists()).toBe(false);
+      expect(wrapper.find('[data-test="delete-confirmation-dialog"]').exists()).toBe(false);
       
       // No delete event should have been emitted
       expect(wrapper.emitted('delete')).toBeFalsy();
     });
 
     it('emits delete event when confirm is clicked', async () => {
-      const wrapper = mount(ToDoItem, {
-        props: {
-          id: '1',
-          name: 'Test Todo',
-          description: 'Test Description',
-          status: 'Created'
-        }
-      });
+      const wrapper = createWrapper();
 
       // Open dialog
       await wrapper.find('button[title="Delete todo"]').trigger('click');
@@ -111,7 +121,7 @@ describe('ToDoItem', () => {
       await deleteButton?.trigger('click');
 
       // Dialog should be closed
-      expect(wrapper.find('.bg-black.bg-opacity-50').exists()).toBe(false);
+      expect(wrapper.find('[data-test="delete-confirmation-dialog"]').exists()).toBe(false);
       
       // Delete event should have been emitted
       expect(wrapper.emitted('delete')).toBeTruthy();
@@ -121,13 +131,7 @@ describe('ToDoItem', () => {
 
   describe('edit functionality', () => {
     it('shows edit button with correct attributes', () => {
-      const wrapper = mount(ToDoItem, {
-        props: {
-          name: 'Test Todo',
-          description: 'Test Description',
-          status: 'Created'
-        }
-      });
+      const wrapper = createWrapper();
 
       const editButton = wrapper.find('[data-test="edit-todo-button"]');
       expect(editButton.exists()).toBe(true);
@@ -135,13 +139,7 @@ describe('ToDoItem', () => {
     });
 
     it('emits edit event when edit button is clicked', async () => {
-      const wrapper = mount(ToDoItem, {
-        props: {
-          name: 'Test Todo',
-          description: 'Test Description',
-          status: 'Created'
-        }
-      });
+      const wrapper = createWrapper();
 
       // Click edit button
       const editButton = wrapper.find('[data-test="edit-todo-button"]');
@@ -152,14 +150,8 @@ describe('ToDoItem', () => {
       expect(wrapper.emitted('edit')?.length).toBe(1);
     });
 
-    it('Todo content stays the same after edit button is clicked', async () => {
-      const wrapper = mount(ToDoItem, {
-        props: {
-          name: 'Test Todo',
-          description: 'Test Description',
-          status: 'Created'
-        }
-      });
+    it('preserves todo content after edit button is clicked', async () => {
+      const wrapper = createWrapper();
 
       // Get initial component content
       const initialContent = wrapper.text();
