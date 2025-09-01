@@ -1,11 +1,20 @@
 import axios from 'axios';
 
-if (!import.meta.env.VITE_API_URL) {
-    throw new Error('VITE_API_URL environment variable is not set');
-}
+const getApiUrl = () => {
+    // In test environment, use a mock URL
+    if (process.env.VITEST) {
+        return 'http://test-api-url';
+    }
+    
+    const apiUrl = import.meta.env.VITE_API_URL;
+    if (!apiUrl) {
+        throw new Error('VITE_API_URL environment variable is not set');
+    }
+    return apiUrl;
+};
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL
+    baseURL: getApiUrl()
 });
 
 export const TodoService = {
