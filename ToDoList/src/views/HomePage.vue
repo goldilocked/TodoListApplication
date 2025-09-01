@@ -32,11 +32,13 @@
     </div>
     <ToDoItem
       v-else
-      v-for="(todo, id) in todos"
-      :key="id"
+      v-for="todo in todos"
+      :key="todo.id"
+      :id="todo.id"
       :name="todo.name"
       :description="todo.description"
       :status="todo.status"
+      @delete="handleDelete(todo.id)"
     />
   </div>
 </template>
@@ -76,6 +78,15 @@ const fetchTodos = async () => {
 const handleFormSubmit = async () => {
   await fetchTodos()  // Refresh the todos list
   hideForm()
+}
+
+const handleDelete = async (id: string) => {
+  try {
+    await TodoService.deleteTodo(id)
+    await fetchTodos() // Refresh the list after deletion
+  } catch (error) {
+    console.error('Failed to delete todo:', error)
+  }
 }
 
 onMounted(fetchTodos)

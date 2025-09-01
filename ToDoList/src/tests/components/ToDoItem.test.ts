@@ -6,6 +6,7 @@ describe('ToDoItem', () => {
   it('shows unchecked checkbox for incomplete items', () => {
     const wrapper = mount(ToDoItem, {
       props: {
+        id: '1',
         name: 'Test Todo',
         description: 'Test Description',
         status: 'Created'
@@ -23,6 +24,7 @@ describe('ToDoItem', () => {
   it('shows checked checkbox for completed items', () => {
     const wrapper = mount(ToDoItem, {
       props: {
+        id: '2',
         name: 'Completed Todo',
         description: 'This is done',
         status: 'Completed'
