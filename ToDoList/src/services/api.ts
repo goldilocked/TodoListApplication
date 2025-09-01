@@ -1,7 +1,20 @@
 import axios from 'axios';
 
+const getApiUrl = () => {
+    // In test environment, use a mock URL
+    if (process.env.VITEST) {
+        return 'http://test-api-url';
+    }
+    
+    const apiUrl = import.meta.env.VITE_API_URL;
+    if (!apiUrl) {
+        throw new Error('VITE_API_URL environment variable is not set');
+    }
+    return apiUrl;
+};
+
 const api = axios.create({
-    baseURL: 'http://localhost:3000'
+    baseURL: getApiUrl()
 });
 
 export const TodoService = {
