@@ -3,9 +3,27 @@
     To-Do List!
   </h1>
   <div class="card">
-    <button type="button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">
+    <button 
+      type="button" 
+      class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
+      @click="showForm"
+    >
       + Add new list item
     </button>    
+  </div>
+
+  <!-- Modal overlay -->
+  <div v-if="isFormVisible" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+      <div class="flex justify-between mb-4">
+        <h2 class="text-xl font-bold">Add New Todo</h2>
+        <button @click="hideForm" class="text-gray-500 hover:text-gray-700">×</button>
+      </div>
+      <ToDoForm 
+        @submit="handleFormSubmit"
+        @cancel="hideForm"
+      />
+    </div>
   </div>
 
   <div class="space-y-4">
@@ -26,6 +44,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import ToDoItem from '../components/ToDoItem.vue'
+import ToDoForm from '../components/ToDoForm.vue'
 import { TodoService } from '../services/api'
 
 interface Todo {
@@ -36,15 +55,30 @@ interface Todo {
 }
 
 const todos = ref<Todo[]>([])
+const isFormVisible = ref(false)
 
-onMounted(async () => {
+const showForm = () => {
+  isFormVisible.value = true
+}
+
+const hideForm = () => {
+  isFormVisible.value = false
+}
+
+const fetchTodos = async () => {
   try {
     todos.value = await TodoService.getAllTodos()
   } catch (error) {
-    // TODO: create an error screen 
     console.error('Failed to fetch todos:', error)
   }
-})
+}
+
+const handleFormSubmit = async () => {
+  await fetchTodos()  // Refresh the todos list
+  hideForm()
+}
+
+onMounted(fetchTodos)
 
 </script>
 
