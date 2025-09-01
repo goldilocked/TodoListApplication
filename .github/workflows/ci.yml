@@ -1,4 +1,4 @@
-name: CI
+name: Tests
 
 on:
   pull_request:
@@ -8,6 +8,7 @@ on:
 
 jobs:
   test:
+    name: Run Frontend and Backend Tests
     runs-on: ubuntu-latest
 
     steps:
