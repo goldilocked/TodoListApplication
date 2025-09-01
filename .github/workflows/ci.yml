@@ -29,7 +29,7 @@ jobs:
 
     - name: Run frontend tests
       working-directory: ./ToDoList
-      run: npm run test -- --no-threads
+      run: npm run test
 
     # Backend tests
     - name: Install backend dependencies
