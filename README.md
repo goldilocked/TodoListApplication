@@ -40,7 +40,7 @@ I also used TypeORM for object-relational mapping and data migrations.
 2. `docker run --name todoListPostgres -e POSTGRES_PASSWORD=<yourpassword> -p 5432:5432 -d postgres`
 3. Navigate to \ToDoListServer
 4. create .env file, using the .env.example file as a guide
-5. run migrations by running `x typeorm-ts-node-commonjs migration:run -d src/data-source.ts`
+5. run migrations by running `npx typeorm-ts-node-commonjs migration:run -d src/data-source.ts`
 
 # Database considerations
 since this is a sample project, I did not add the ability for different users to have different to do lists.
@@ -81,7 +81,7 @@ TodoListApplication/
    ```bash
    cd ToDoListServer
    npm install
-   npm run dev
+   npm start
    ```
 
 3. Start the frontend:
