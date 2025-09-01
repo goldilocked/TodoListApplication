@@ -141,3 +141,13 @@ Vite supports TypeScript, handles environment variables easily, and supports CSS
 My service layer is in my frontend project, in the `services` folder. This is where I put any direct calls to the api. 
 Any pages that want to call my api have to go through this layer. 
 If I change how I access the api, or change what api I want to use, I now only have to make changes in this one layer. 
+
+# Security
+My application is safe from SQL injection, since typeORM uses parameterized queries by default. 
+
+# What I would do next on this app
+1. I would add accessibility by adding ARIA attributes and running an accessibility tool like WAVE against my website.
+2. I would add better error feedback for the user. Right now everything fails silently. For something as small and low stakes as this, I would add a toast popup on error that asked users to try again later.
+3. I've been reading a book on web security. I may still, as an exercise for myself, go through the book and look for any updates that I could make to this application to practice web security. 
+4. rate limiting and retry functionality. In C# I've used Polly for this, however Polly does not seem to be available for Typescript. Axios Retry is the most lightweight option, and Opossum is the heaviest. I would go with Axios Retry, since this app does not require the heaviest option. 
+5. Integration tests
