@@ -1,7 +1,11 @@
 import axios from 'axios';
 
+if (!import.meta.env.VITE_API_URL) {
+    throw new Error('VITE_API_URL environment variable is not set');
+}
+
 const api = axios.create({
-    baseURL: 'http://localhost:3000'
+    baseURL: import.meta.env.VITE_API_URL
 });
 
 export const TodoService = {
