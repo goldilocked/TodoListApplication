@@ -13,5 +13,10 @@ export const TodoService = {
     async createTodo(todo: { name: string; description: string; status: string }) {
         const response = await api.post('/todos', todo);
         return response.data;
+    },
+
+    async deleteTodo(id: string) {
+        const response = await api.delete(`/todos/${id}`);
+        return response.data;
     }
 };
