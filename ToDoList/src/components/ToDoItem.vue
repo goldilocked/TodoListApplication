@@ -11,6 +11,7 @@
     <div class="flex-grow">
       <div class="font-semibold" data-test="todo-name">{{ name }}</div>
       <div class="text-gray-500 text-sm" data-test="todo-description">{{ description }}</div>
+      <div v-if="dueDate" class="text-gray-400 text-xs" data-test="todo-dueDate">Due: {{ new Date(dueDate).toLocaleDateString() }}</div>
     </div>
     
     <div class="flex space-x-2">
@@ -77,6 +78,7 @@ const props = defineProps<{
   name: string
   description: string
   status: string
+  dueDate: Date | null
 }>()
 
 const showConfirmation = ref(false)

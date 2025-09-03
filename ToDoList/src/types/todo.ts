@@ -3,4 +3,5 @@ export interface TodoItem {
     name: string;
     description: string;
     status: string;
+    dueDate: Date;
 }

@@ -48,6 +48,7 @@
       :name="todo.name"
       :description="todo.description"
       :status="todo.status"
+      :dueDate="todo.dueDate"
       @delete="handleDelete(todo.id)"
       @edit="showEditForm(todo)"
     />

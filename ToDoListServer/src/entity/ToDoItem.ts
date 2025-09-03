@@ -13,4 +13,7 @@ export class ToDoItem {
 
     @Column()
     status: string;
+
+    @Column({ nullable: true })
+    dueDate: Date | null;
 }

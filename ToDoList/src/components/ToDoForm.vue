@@ -23,6 +23,18 @@
       ></textarea>
     </div>
 
+    <div>
+      <label for="dueDate">Due Date</label>
+      <input
+        type="date"
+        id="dueDate"
+        data-test="todo-dueDate-input"
+        v-model="form.dueDate"
+        :min="getCurrentDate()"
+        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+      />
+    </div>
+
     <div class="flex justify-end space-x-3">
       <button
         type="button"
@@ -58,7 +70,8 @@ const emit = defineEmits<{
 const form = ref({
   name: props.todo?.name || '',
   description: props.todo?.description || '',
-  status: props.todo?.status || 'Created'
+  status: props.todo?.status || 'Created',
+  dueDate: props.todo?.dueDate || ''
 })
 
 const handleSubmit = async () => {
@@ -74,6 +87,12 @@ const handleSubmit = async () => {
   } catch (error) {
     console.error('Error saving todo:', error);
   }
+}
+
+const getCurrentDate = () => {
+  const today = new Date();
+  // Format date as YYYY-MM-DD
+  return today.toISOString().split('T')[0];
 }
 
 </script>

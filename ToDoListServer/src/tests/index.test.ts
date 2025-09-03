@@ -35,7 +35,8 @@ describe('Todo API with mocked database', () => {
         id: '1',
         name: 'Test Todo',
         description: 'Test Description',
-        status: 'Created'
+        status: 'Created',
+        dueDate: '2025-12-31'
       };
 
       // Mock the find method for this specific test
@@ -49,7 +50,8 @@ describe('Todo API with mocked database', () => {
       expect(response.body[0]).toMatchObject({
         name: 'Test Todo',
         description: 'Test Description',
-        status: 'Created'
+        status: 'Created',
+        dueDate: '2025-12-31'
       });
     });
 
@@ -77,13 +79,15 @@ describe('Todo API with mocked database', () => {
         id: '1',
         name: 'Original Todo',
         description: 'Original Description',
-        status: 'Created'
+        status: 'Created',
+        dueDate: new Date('2025-12-31')
       };
 
-      const updatedTodo = {
+      const expectedTodo = {
         name: 'Updated Todo',
         description: 'Updated Description',
-        status: 'IN_PROGRESS'
+        status: 'IN_PROGRESS',
+        dueDate: new Date('2025-12-31').toDateString()
       };
 
       // Mock findOne to return the existing todo
@@ -92,17 +96,17 @@ describe('Todo API with mocked database', () => {
       // Mock save to return the updated todo
       jest.spyOn(AppDataSource.manager, 'save').mockResolvedValueOnce({
         ...existingTodo,
-        ...updatedTodo
+        ...expectedTodo
       });
 
       const response = await request(app)
         .put('/todos/1')
-        .send(updatedTodo);
+        .send(expectedTodo);
       
       expect(response.status).toBe(200);
       expect(response.body).toMatchObject({
         id: '1',
-        ...updatedTodo
+        ...expectedTodo
       });
     });
 
@@ -120,6 +124,41 @@ describe('Todo API with mocked database', () => {
       
       expect(response.status).toBe(404);
       expect(response.body).toEqual({ error: 'Todo not found' });
+    });
+
+    it('should not allow date in the past', async () => {
+
+      const existingTodo = {
+        id: '1',
+        name: 'Original Todo',
+        description: 'Original Description',
+        status: 'Created',
+        dueDate: new Date('2025-12-31')
+      };
+
+      const invalidTodo = {
+        name: 'Test Todo',
+        description: 'Test Description',
+        status: 'IN_PROGRESS',
+        dueDate: new Date('2020-01-01')
+      };
+
+      // Mock findOne to return the existing todo
+      jest.spyOn(AppDataSource.manager, 'findOne').mockResolvedValueOnce(existingTodo);
+      
+      // Mock save to return the updated todo
+      jest.spyOn(AppDataSource.manager, 'save').mockResolvedValueOnce({
+        ...existingTodo,
+        ...invalidTodo
+      });
+
+      const response = await request(app)
+        .put('/todos/1')
+        .send(invalidTodo);
+
+      
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({ error: 'Due date cannot be in the past' });
     });
 
     it('should return 400 for invalid input', async () => {
@@ -165,7 +204,8 @@ describe('Todo API with mocked database', () => {
           id: '1',
           name: entity.name,
           description: entity.description,
-          status: entity.status
+          status: entity.status,
+          dueDate: entity.dueDate
         })
       );
 
@@ -193,6 +233,22 @@ describe('Todo API with mocked database', () => {
       expect(response.body).toEqual({ error: 'Missing required fields' });
     });
 
+    it('should not allow date in the past', async () => {
+      const invalidTodo = {
+        name: 'Test Todo',
+        description: 'Test Description',
+        status: 'IN_PROGRESS',
+        dueDate: new Date('2020-01-01')
+      };
+
+      const response = await request(app)
+        .post('/todos')
+        .send(invalidTodo);
+      
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({ error: 'Due date cannot be in the past' });
+    });
+
     it('should handle database errors', async () => {
       // Mock the save method to throw an error
       jest.spyOn(AppDataSource.manager, 'save').mockRejectedValueOnce(new Error('Database error'));
@@ -200,7 +256,8 @@ describe('Todo API with mocked database', () => {
       const newTodo = {
         name: 'New Todo',
         description: 'New Description',
-        status: 'Created'
+        status: 'Created',
+        dueDate: new Date('2025-12-31')
       };
 
       const response = await request(app)

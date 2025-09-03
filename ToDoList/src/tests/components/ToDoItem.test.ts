@@ -18,6 +18,7 @@ describe('ToDoItem', () => {
         name: 'Test Todo',
         description: 'Test Description',
         status: 'Created',
+        dueDate: null,
         ...props
       }
     });

@@ -8,12 +8,28 @@ interface CreateTodoRequest {
     name: string;
     description: string;
     status: string;
+    dueDate?: string | null;
+}
+
+function isValidDate(dateString: string | null | undefined): boolean {
+    if (!dateString) return true; // null/undefined dates are valid
+    const date = new Date(dateString);
+    // TODO make a date service so that I can mock dates
+    const today = new Date();
+    return !isNaN(date.getTime()) && date >= today;
 }
 
 function isValidTodoRequest(req: any): req is CreateTodoRequest {
-    return typeof req.name === 'string' && req.name.length > 0 &&
+    const basicValidation = typeof req.name === 'string' && req.name.length > 0 &&
            typeof req.description === 'string' && req.description.length > 0 &&
            typeof req.status === 'string' && req.status.length > 0;
+    
+    // If dueDate is provided, validate it's not in the past
+    if (req.dueDate && !isValidDate(req.dueDate)) {
+        return false;
+    }
+
+    return basicValidation;
 }
 
 // Initialize express app
@@ -34,7 +50,11 @@ app.get("/todos", async (_req: Request, res: Response) => {
 app.post("/todos", async (req: Request, res: Response) => {
     try {
         if (!isValidTodoRequest(req.body)) {
-            return res.status(400).json({ error: "Missing required fields" });
+            return res.status(400).json({ 
+                error: req.body.dueDate && !isValidDate(req.body.dueDate) 
+                    ? "Due date cannot be in the past" 
+                    : "Missing required fields" 
+            });
         }
 
         const todo = AppDataSource.manager.create(ToDoItem, req.body);
@@ -50,7 +70,12 @@ app.put("/todos/:id", async (req: Request, res: Response) => {
         const id = req.params.id;
         
         if (!isValidTodoRequest(req.body)) {
-            return res.status(400).json({ error: "Missing required fields" });
+            return res.status(400).json({ 
+                // TODO return validation from my error checker instead
+                error: req.body.dueDate && !isValidDate(req.body.dueDate) 
+                    ? "Due date cannot be in the past" 
+                    : "Missing required fields" 
+            });
         }
 
         const todo = await AppDataSource.manager.findOne(ToDoItem, { where: { id } });
